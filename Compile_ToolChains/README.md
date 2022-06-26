@@ -1,5 +1,9 @@
 # Makefile & CMake
 
+## 目录
+
+[TOC]
+
 想象一下我们有如下C++程序`hello.cpp`：
 
 ```cpp
