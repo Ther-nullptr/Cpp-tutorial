@@ -78,6 +78,8 @@ $ g++ invsqrt.o main.o -o main.exe
 $ g++ invsqrt.cpp main.cpp -o main.exe
 ```
 
+> 实际上在linux系统上，可执行文件一般是没有后缀名的。此处为了方便说明添加了`.exe`文件。
+
 > **语法总结**
 > 
 > `g++`和`gcc`工具中使用的一些命令行参数：
@@ -89,5 +91,55 @@ $ g++ invsqrt.cpp main.cpp -o main.exe
 > * `-c` 只生成目标文件
 >
 > * `-o <file>` 指定输出文件的名称。我们约定：`.i`为预处理后的文件，`.s`为汇编文件，`.o`为目标文件。
-> 
-（未完待续...）
+
+
+### 静态库和动态库
+
+出于便于复用、封装细节或防止源码泄露等原因，在实际应用过程中，我们需要把C++源码封装为库(library)。
+
+根据其行为不同，可以将库分为静态库(static library)和动态库(shared library)。
+
+#### 静态库
+
+**静态库**的代码在编译的过程中，会被直接载入到可执行文件中。这样做的好处是：可执行文件在执行时，不再需要静态库本身。但缺点也显而易见：生成的可执行文件的体积会比较大。
+
+linux平台下静态库的后缀通常为`.a`，命名方式通常为`libxxx.a`;windows平台下静态库的后缀通常为`.lib`。
+
+在linux平台上生成静态库，并使用动态库链接形成可执行文件的方法为：
+
+```bash
+# generate static lib
+$ ar crv libinvsqrt.a invsqrt.cpp 
+# link to generate the executable file
+$ g++ -static main.cpp -L . -linvsqrt -o main_shared.exe
+```
+
+#### 动态库
+
+**动态库**在程序编译时并不会被连接到目标代码中，而是在程序运行是才被载入。这就带来了一个明显的好处：不同的应用程序如果调用相同的库，那么在内存里只需要有一份该共享库的实例，减小了各个模块之间的耦合程度，也减小了可执行文件的体积。然而，这也要求用户的电脑上需要同时拥有可执行文件和动态库，也有可能因为版本不匹配等问题发生[DLL Hell](https://en.wikipedia.org/wiki/DLL_Hell)等问题。
+
+linux平台下静态库的后缀通常为`.so`，命名方式通常为`libxxx.so`;windows平台下静态库的后缀通常为`.dll`。
+
+在linux平台上生成动态库，并使用动态库链接形成可执行文件的方法为：
+
+```bash
+# generate shared lib
+$ g++ invsqrt.cpp -I ./ -fPIC -shared -o libinvsqrt.so
+# link to generate the executable file
+$ g++ main.cpp -L . -linvsqrt -o main_shared.exe
+```
+
+## 写在最后
+
+由于时间所限，还有很多有趣的内容我们没有涉及：
+
+* gcc/g++有着丰富的命令行参数设置，比如程序优化、C/C++语言标准设置等。
+* 在本节中，我们只介绍了如何在linux平台上生成和使用静态库、动态库。实际上，利用Visual Studio也可以便捷地在windows平台上生成静态库、动态库。
+* ...
+
+略过上述内容不会对我们的教学产生太大影响。感兴趣的同学可以参考以下文档：
+
+* [GCC官网](https://gcc.gnu.org/)
+* [learn cpp](https://www.learncpp.com/) 一份新手友好的C++入门文档。
+* [演练：使用Visual Studio创建并使用静态库](https://docs.microsoft.com/zh-cn/cpp/build/walkthrough-creating-and-using-a-static-library-cpp?view=msvc-170)
+* [演练：使用Visual Studio创建并使用动态库](https://docs.microsoft.com/zh-cn/cpp/build/walkthrough-creating-and-using-a-dynamic-link-library-cpp?view=msvc-170)
