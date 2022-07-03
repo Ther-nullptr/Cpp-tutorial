@@ -4,6 +4,8 @@
 
 [TOC]
 
+## 前言
+
 想象一下我们有如下C++程序`hello.cpp`：
 
 ```cpp
@@ -29,13 +31,13 @@ $ g++ hello.cpp -o hello
 
 为了解决这些问题，`makefile`和`CMake`应运而生。
 
-本讲需要使用到的工具：`g++`，`make`，`cmake`。可以通过以下方式安装：
+## Makefile
+
+在linux(Ubuntu)平台上，`make`工具可以通过以下方式安装：
 
 ```bash
-$ sudo apt-get install g++ make cmake
+$ sudo apt-get install make
 ```
-
-## Makefile
 
 makefile文件描述了C/C++工程的编译规则，可以用来指明源文件的编译顺序、依赖关系、是否需要重新编译等，自动化编译C/C++项目（实际上也不止局限于C/C++项目）。
 
@@ -68,23 +70,36 @@ clean:
 	rm main.o invsqrt.o main
 ```
 
-我们不需要理解每一段代码的具体含义（之后我们可以看到，我们不需要手动编写makefile，而可以直接通过CMake工具生成makefile），我们只需要了解如何使用makefile：
+此处，我们不需要理解每一段代码的具体含义——由于makefile文件的可读性较差，在日后的开发工作中，我们并不需要直接编写makefile（之后我们可以看到，我们可以直接通过CMake工具生成makefile）。
+
+当然，目前仍然有许多开源项目使用makefile构建程序，因此了解如何使用makefile仍然是十分有必要的。大部分开源项目中的makefile支持以下指令：
+
 * 在makefile的同目录下输入`make`，就可以按照makefile所指定的编译规则自动编译整个工程。
-* 在makefile的同目录下输入`make clean`，可以删除编译生成的中间文件和可执行文件。
-* 除此之外，你还可以为makefile添加更多指令，此处由于篇幅所限，不再展开介绍。
+* 在makefile的同目录下输入`make clean`，可以删除编译生成的中间文件（如`.o`文件等）和可执行文件。
+* 在makefile的同目录下输入`make install`（一般需要root权限），可以安装编译好的可执行文件（默认路径为`/usr/local/bin`，安装好后可以在命令行中直接调用）、库（默认路径为`/usr/local/lib`，安装好后可以直接链接）、头文件（默认路径为`/usr/local/include`，安装好后可以直接使用`#include <xxx.h>`引用）。
 
 ## CMake
 
 makefile存在以下问题：
-* 语法复杂，代码可读性差，难以维护。
-* 跨平台性差。
+* 代码可读性极差，难以维护。
+* 语法复杂。
+* 跨平台性差。比如linux平台下的makefile在windows下可能无法工作，因为linux的删除指令是`rm`，windows下的删除指令是`del`。
+* ...
   
-在目前的C++工程中，我们多使用CMake来管理项目。
 
-什么是[CMake](https://cmake.org/)？CMake是一种跨平台的编译工具，可以用较为简洁易读的语法描述C++项目的编译、链接、安装过程等，在现代C++项目上得到了广泛应用。
+因此，在目前的C++工程中，我们多使用[CMake](https://cmake.org/)来管理项目。CMake是一种跨平台的编译工具，可以用较为简洁易读的语法描述C++项目的编译、链接、安装过程等，在现代C++项目上得到了广泛应用。
 
+### Linux
 
-### 1 第一个CMake项目
+在linux(Ubuntu)平台上，`cmake`工具可以通过以下方式安装：
+
+```bash
+$ sudo apt-get install cmake
+```
+
+在linux平台上，cmake工具的使用一般分为两步 1) 使用`CMakeLists.txt`生成`makefile`。 2) 使用`makefile`自动化编译项目。
+
+#### 1 第一个CMake项目
 
 CMake的项目文件叫做`CMakeLists.txt`。其放置位置如下图所示：
 ```
@@ -104,13 +119,13 @@ add_executable(hello_world main.cpp)
 > * `project(<project_name>)` 指定工程名称。
 > * `add_executable(<executable_name> <cppfile_name>)` 生成可执行文件。
 
-cmake工具的使用一般分为两步 1) 使用`CMakeLists.txt`生成`makefile`。 2) 使用`makefile`自动化编译项目。
+操作方法如下：
 
 1. 输入`cmake CMakeLists.txt`，目录下将会生成一个`Makefile`文件。
 2. 输入`make`，即可将源代码编译生成可执行文件。此处将会在与`CMakeLists.txt`相同目录的位置生成一个可执行文件`hello_word`，输入`./hello_word`即可运行该可执行文件。
 3. 此外，输入`make help`，你也可以查看使用当前的`Makefile`所能执行的所有指令，例如`make clean`（清楚生成的可执行文件和中间文件）。
 
-### 2 多文件
+#### 2 多文件
 
 在平时的程设小作业中，我们习惯将所有的代码都写在一个`.cpp`文件中。但在实际工程中，为了方便代码复用和运行维护，通常将所有的文件划分为头文件(`.h`)，模块文件(`.cpp`)和主程序文件(`.cpp`)。
 
@@ -156,11 +171,11 @@ message("SOURCES: ${SOURCES}")
 
 CMake中有丰富的变量，用于定义工程目录、编译选项等，此处不做过多展开。想要了解更多，可以参考文末列出的参考文档。
 
-### 3 静态库和动态库
+#### 3 静态库和动态库
 
 有些时候，出于方便复用、防止源码泄露等原因，我们需要将代码封装为静态库和动态库。CMake同样提供了生成静态库和动态库的功能。
 
-#### 3.1 静态库
+##### 3.1 静态库
 
 在此处，我们将上一小节中计算平方根倒数的程序封装为静态库。项目结构如下：
 ```
@@ -202,7 +217,7 @@ $ make
 
 我们将会在`build/`目录下看到静态库`libinvsqrt_static.a`和可执行文件`invsqrt`。
 
-#### 3.2 动态库
+##### 3.2 动态库
 
 项目目录结构同静态库一节。
 
@@ -226,7 +241,7 @@ target_link_libraries(invsqrt PRIVATE invsqrt_shared)
 
 同样按照上小节的方法生成项目。我们将会在`build/`目录下看到动态库`libinvsqrt_shared.so`和可执行文件`invsqrt`。
 
-### 4 使用第三方库
+#### 4 使用第三方库
 
 在实际的C++工程中，我们可能需要链接一些开源的第三方库。CMake也提供了相关的配置方式。我们以谷歌开发的单元测试框架`googletest`为例：
 
@@ -242,8 +257,6 @@ target_link_libraries(invsqrt PRIVATE invsqrt_shared)
 > $ make install 
 > # or sudo make install
 > ```
-
-> 在默认情况下，与该第三方库相关的头文件将会被放置在`/usr/local/include`目录下，与该第三方库相关的库文件将会被放置在`/usr/local/lib`目录下，与该第三方库相关的可执行文件将会被放置在`/usr/local/bin`目录下。
 
 项目结构如下：
 
@@ -278,6 +291,32 @@ target_link_libraries(cmake_with_gtest ${GTEST_LIBRARIES} pthread)
 > * `find_package(<package_name>)` 查询第三方库的位置。若查找成功，则初始化变量`<package_name>_INCLUDE_DIR`（第三方库的头文件目录）以及`<package_name>_LIBRARIES`（第三方库的静态/动态库目录）。 
 
 CMake支持的所有第三方库可以在[https://cmake.org/cmake/help/latest/manual/cmake-modules.7.html](https://cmake.org/cmake/help/latest/manual/cmake-modules.7.html)中找到。
+
+### windows
+
+我们也可以在windows上使用CMake管理C++程序：
+
+1. 在创建新项目时选择“CMake项目”。![stage 1](https://s2.loli.net/2022/07/03/fT1tYzvLpF6jUcS.png)
+
+2. 创建新项目后，我们可以在文件夹中看到`.cpp`、`.h`和`CMakeLists.txt`模板。我们需要添加自己的头文件、源文件，并修改`CMakeLists.txt`。
+
+   ![stage 2](https://s2.loli.net/2022/07/03/HeGY21a8mc6k34K.png)
+
+   ```cmake
+   # CMakeList.txt: CMakeProject1 的 CMake 项目，在此处包括源代码并定义
+   # 项目特定的逻辑。
+   #
+   cmake_minimum_required (VERSION 3.8)
+   
+   # 将源代码添加到此项目的可执行文件。
+   add_executable (CMakeProject1 "invsqrt.cpp" "main.cpp" "invsqrt.h" )
+   
+   # TODO: 如有需要，请添加测试并安装目标。
+   ```
+
+3. 配置好上述工程后，直接生成即可。
+
+   ![stage 3](https://s2.loli.net/2022/07/03/qSsrgYDGZJVpO5I.png)
 
 ## 写在最后
 

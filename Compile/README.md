@@ -10,17 +10,18 @@
 
 实际上，从C++源代码文件到可执行文件的过程是十分复杂的，Visual Studio等现代化的IDE（Integrated Development Environment，集成开发环境）掩盖了程序构建的复杂流程。本节我们就以linux平台上的C++程序为例，简略介绍C++工程中的一些概念。
 
-为了获得更好的实验体验，建议大家使用linux操作系统（虚拟机或WSL）来运行本节的程序。
-
-本讲需要使用到的工具有：`gcc`，`g++`。可以通过以下方式安装：
-
-```bash
-$ sudo apt-get install gcc g++
-```
+**important!!** 为了获得更好的实验体验，建议大家使用linux操作系统（虚拟机或WSL）来运行本节的程序。
 
 ## 从.cpp到.exe —— C/C++程序的构建过程
 
-C/C++程序生成一个可执行文件的过程可以分为4个步骤：**预处理（Preprocessing）**、**编译（Compiling）**、**汇编（Assembly）**和**链接（Linking）**。之后我们将通过演示实例介绍每一步发生的故事。
+C/C++程序生成一个可执行文件的过程可以分为4个步骤：**预处理（Preprocessing）**、**编译（Compiling）**、**汇编（Assembly）**和**链接（Linking）**。
+
+* 预处理：在编译器处理程序之前完成头文件的包含，宏扩展，条件编译，行控制等操作。
+* 编译：通过词法分析和语法分析，在确认所有的指令都符合语法规则之后，将源文件代码翻译成等价的汇编代码。
+* 汇编：将汇编语言代码翻译成目标机器指令，生成目标文件。
+* 链接：将有关联的目标文件（以及库）相组合为一个可执行文件。
+
+接下来，我们将通过演示实例介绍每一步发生的故事。
 
 
 ### 编译工具
@@ -32,6 +33,12 @@ C/C++程序生成一个可执行文件的过程可以分为4个步骤：**预处
 * GCC（GNU Compiler Collection）：GCC是由GNU（GNU's Not Unix）开发的一套编译工具，支持C、C++、Fortran、Go等一系列语言。本教程中我们使用的编译工具就是GCC。
   
   GCC提供给用户的前端程序为`gcc`（针对C）和`g++`（针对C++）。它们的区别详见[gcc vs g++](https://stackoverflow.com/questions/172587/what-is-the-difference-between-g-and-gcc)。
+  
+  在linux(Ubuntu)平台上，可以使用以下指令安装上述工具：
+  
+  ```bash
+  $ sudo apt-get install gcc g++
+  ```
 * 此外还有Clang、NVCC等编译工具。不同的编译工具对C++的支持不尽然相同，此处不再赘述。
 
 ### 1 预处理
@@ -44,7 +51,7 @@ $ g++ –E invsqrt.cpp –o invsqrt.i
 
 ### 2 编译
 
-C++程序在编译阶段会将C++文件转换为汇编文件。
+C++程序在编译阶段会将C++文件转换为**汇编文件**。
 
 ```bash
 # from .i file
@@ -54,7 +61,7 @@ $ g++ –S invsqrt.cpp –o invsqrt.s
 ```
 
 ### 3 汇编
-汇编语言文件经过汇编，生成目标文件.o文件（二进制文件，机器码），每一个源文件都对应一个目标文件。
+汇编语言文件经过汇编，生成**目标文件**.o文件（二进制文件，机器码），每一个源文件都对应一个目标文件。
 
 ```bash
 # from .s file
@@ -67,7 +74,7 @@ $ g++ -c main.cpp -o main.o
 > 生成的`invsqrt.o`和`main.o`文件不能直接打开，你可以使用`readelf -a <object file>`阅读其信息。
 
 ### 4 链接
-每个源文件对应的目标.o文件被链接起来，就生成一个可执行程序文件。
+将每个源文件对应的目标.o文件链接起来，就生成一个**可执行程序文件**。
 
 ```bash
 $ g++ invsqrt.o main.o -o main.exe
