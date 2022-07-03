@@ -1,5 +1,9 @@
 # 面向对象程序设计基础
 
+## 目录
+
+[TOC]
+
 在大一的程设课上，我们系统学习了C++的语法，掌握了一些编写小型程序的技能。实际上，要想写出一个可读性好、可复用、鲁棒性强的程序，掌握一些基本的设计原则是十分必要的。
 
 本讲的内容并不针对具体的某一语言，而且相比之前的一些内容，本讲的知识更需要在长期的实践中“内化”；与此同时，与软件工程相关的理论博大精深，本讲仅仅挑选一些代表性的原则，只能带领大家入门，想要了解更多还需要仔细阅读文末提供的书单~
@@ -448,13 +452,172 @@ C++、C#、Python等语言为实现继承、多态等面向对象特性提供了
 
 设计模式共计分为3大类22小类：
 
-* 创建型模式提供创建对象的机制， 增加已有代码的灵活性和可复用性。
+* **创建型模式**提供创建对象的机制， 增加已有代码的灵活性和可复用性。
 
-* 结构型模式介绍如何将对象和类组装成较大的结构， 并同时保持结构的灵活和高效。
+* **结构型模式**介绍如何将对象和类组装成较大的结构， 并同时保持结构的灵活和高效。
 
-* 行为模式负责对象间的高效沟通和职责委派。
+* **行为模式**负责对象间的高效沟通和职责委派。
 
 不同的设计模式之间有着相似的理念和重叠之处。合理利用设计模式可以让代码更加规范、更容易维护，但盲目使用设计模式也不是明智之举。
+
+本讲将介绍一个难度较大，而且应用较为广泛的设计模式——**桥接模式**（属于结构型模式）。
+
+桥接模式的定义如下：桥接模式是将类**抽象部分**与**实现部分**分离，使它们都可以独立地变化。
+
+![桥接模式示意图](https://s2.loli.net/2022/07/03/TKqRdsVU73LSc5Q.png)
+
+什么是**抽象部分**？什么是**实现部分**？让我们先考虑以下场景：一家奶茶店售卖不同种类的奶茶，奶茶既有不同的容量，也有不同的口味。如果我们只需要改变奶茶的容量，可以做出如下设计：
+
+```cpp
+class IMilkTea // 通用接口
+{
+    virtual void order() = 0;
+};
+
+class MilkTeaSmallCup: public IMilkTea
+{
+    void order() override
+    {
+        std::cout << "order info:" << std::endl;
+        std::cout << "size: small cup" << std::endl;
+    }
+};
+
+class MilkTeaMediumCup: public IMilkTea
+{
+    void order() override
+    {
+        std::cout << "order info:" << std::endl;
+        std::cout << "size: medium cup" << std::endl;
+    }
+};
+
+class MilkTeaLargeCup: public IMilkTea
+{
+    void order() override
+    {
+        std::cout << "order info:" << std::endl;
+        std::cout << "size: large cup" << std::endl;
+    }
+};
+```
+
+当类的变化只有一个维度时，继承的思路是比较直接而简单的。但当我们将“口味”也加入继承体系中，也就是当类的变化有两个维度时，沿用上面的思路将会使得类的数量急剧增长：
+
+```c++
+class MilkTeaSmallCupFairyGrass: public IMilkTea
+{
+    void order() override
+    {
+        std::cout << "order info:" << std::endl;
+        std::cout << "size: small cup" << std::endl;
+        std::cout << "flavor: fairy grass" << std::endl;
+    }
+};
+
+class MilkTeaSmallCupPearl: public IMilkTea
+{
+    void order() override
+    {
+        std::cout << "order info:" << std::endl;
+        std::cout << "size: small cup" << std::endl;
+        std::cout << "flavor: pearl" << std::endl;
+    }
+};
+
+// class MilkTeaMediumCupPearl, class MilkTeaLargeCupFairyGrass, ...
+```
+
+问题的根源在于，我们试图在两个独立的维度（“容量”和“口味”）上扩展奶茶类。这时候，桥接模式就派上了用场：我们将容量视为**抽象部分**，将口味视为**实现部分**，并将两者桥接。
+
+> “抽象部分”和“实现部分”所承担的角色：
+> * 抽象部分：抽象化给出的定义，只提供高层控制逻辑，依赖于完成底层实际工作的实现对象。抽象部分保存一个对实现化对象的引用（指针）。
+> * 实现部分：给出实现化角色的通用接口，抽象部分仅能通过在这里声明的方法与实现对象交互。
+
+例如在本例中，可以做如下修改：
+```c++
+// 实现化部分
+class IMilkTeaFlavorBase
+{
+public:
+    virtual void GetFlavor() = 0;
+};
+
+class MilkTeaPearl: public IMilkTeaFlavorBase
+{
+public:
+    void GetFlavor() override
+    {
+        std::cout << "flavor: pearl" << std::endl;
+    }
+};
+
+class MilkTeaFairyGrass: public IMilkTeaFlavorBase
+{
+public:
+    void GetFlavor() override
+    {
+        std::cout << "flavor: fairy grass" << std::endl;
+    }
+};
+
+// 抽象化部分
+class IMilkTeaSizeBase
+{
+public:
+    virtual void SetFlavor(std::shared_ptr<IMilkTeaFlavorBase> flavorBase)
+    {
+        this->flavorBase = flavorBase;
+    }
+    virtual void Order() = 0;
+protected:
+    std::shared_ptr<IMilkTeaFlavorBase> flavorBase;
+};
+
+class MilkTeaSmall: public IMilkTeaSizeBase
+{
+public:
+    void Order() override
+    {
+        std::cout << "size: small" << std::endl;
+        flavorBase->GetFlavor();
+    }
+};
+
+class MilkTeaMedium: public IMilkTeaSizeBase
+{
+public:
+    void Order() override
+    {
+        std::cout << "size: medium" << std::endl;
+        flavorBase->GetFlavor();
+    }
+};
+
+class MilkTeaLarge: public IMilkTeaSizeBase
+{
+public:
+    void Order() override
+    {
+        std::cout << "size: large" << std::endl;
+        flavorBase->GetFlavor();
+    }
+};
+
+// 使用方法
+int main()
+{
+    // 大杯烧仙草
+    std::shared_ptr<MilkTeaFairyGrass> milkTeaFairyGrass = std::make_shared<MilkTeaFairyGrass>();
+    std::shared_ptr<MilkTeaLarge> milkTeaLargeWithFairyGrass = std::make_shared<MilkTeaLarge>();
+    milkTeaLargeWithFairyGrass->SetFlavor(milkTeaFairyGrass);
+    milkTeaLargeWithFairyGrass->Order();
+}
+
+
+```
+
+可以在上述示例中看到：抽象部分各类中，都含有一个实现部分的指针。如果需要访问实现部分的方法，可以通过该指针进行访问。这样，我们就通过桥接的方式分离了两个不同的维度，使得类的可扩展性更好。
 
 由于篇幅所限，我们在此处不能对设计模式进行一一介绍，感兴趣的同学可以参考文末给出的阅读清单进行学习。
 
@@ -463,6 +626,4 @@ C++、C#、Python等语言为实现继承、多态等面向对象特性提供了
 [Refactoring.Guru](https://refactoringguru.cn/) 该网站详细介绍了各设计模式的特点，并提供了不同编程语言的实例。
 
 [Clean C++](https://link.springer.com/content/pdf/10.1007%2F978-1-4842-2793-0.pdf) 这本书的侧重点不在介绍C++语法，而侧重于使用C++语言介绍如何写出可读性强、符合面向对象规范的程序，强推！
-
-
 
