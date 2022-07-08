@@ -116,7 +116,7 @@ linux平台下静态库的后缀通常为`.a`，命名方式通常为`libxxx.a`;
 
 ```bash
 # generate static lib
-$ ar crv libinvsqrt.a invsqrt.cpp 
+$ ar crv libinvsqrt.a invsqrt.o
 # link to generate the executable file
 $ g++ -static main.cpp -L . -linvsqrt -o main_shared.exe
 ```
