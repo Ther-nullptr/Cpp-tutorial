@@ -134,6 +134,8 @@ linux平台下静态库的后缀通常为`.so`，命名方式通常为`libxxx.so
 $ g++ invsqrt.cpp -I ./ -fPIC -shared -o libinvsqrt.so
 # move the shared library to system 
 $ sudo mv libinvsqrt.so /usr/local/lib
+# refresh
+$ sudo ldconfig
 # link to generate the executable file
 $ g++ main.cpp -L . -linvsqrt -o main_shared.exe
 ```
