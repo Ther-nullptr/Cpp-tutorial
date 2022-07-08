@@ -1,4 +1,4 @@
-#include "../include/mysqrt.h"
+#include "../include/invsqrt.h"
 
 float Q_rsqrt(float number)
 {
