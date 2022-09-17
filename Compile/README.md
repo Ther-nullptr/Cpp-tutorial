@@ -1,7 +1,5 @@
 # 编译、链接、静态库、动态库
 
-无03 王与进
-
 ## 目录
 
 [TOC]
@@ -118,7 +116,7 @@ linux平台下静态库的后缀通常为`.a`，命名方式通常为`libxxx.a`;
 
 ```bash
 # generate static lib
-$ ar crv libinvsqrt.a invsqrt.cpp 
+$ ar crv libinvsqrt.a invsqrt.o
 # link to generate the executable file
 $ g++ -static main.cpp -L . -linvsqrt -o main_shared.exe
 ```
@@ -134,6 +132,10 @@ linux平台下静态库的后缀通常为`.so`，命名方式通常为`libxxx.so
 ```bash
 # generate shared lib
 $ g++ invsqrt.cpp -I ./ -fPIC -shared -o libinvsqrt.so
+# move the shared library to system 
+$ sudo mv libinvsqrt.so /usr/local/lib
+# refresh
+$ sudo ldconfig
 # link to generate the executable file
 $ g++ main.cpp -L . -linvsqrt -o main_shared.exe
 ```
